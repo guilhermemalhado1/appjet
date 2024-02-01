@@ -9,8 +9,11 @@ import (
 func main() {
 	r := gin.Default()
 
-	apiGroup := r.Group("/command")
+	apiGroup := r.Group("/api")
 	{
+		//check if alive containers endpoint
+		apiGroup.GET("/check-alive", commandhandler.CheckAlive)
+
 		//load config and install all docker containers - but don't start them
 		apiGroup.POST("/configure", commandhandler.ConfigureHandler)
 		//returns the config.json present in the current daemon
@@ -33,14 +36,14 @@ func main() {
 		//clean all docker images, containers and volumes in this server (docker system prune -a)
 		apiGroup.GET("/clean", commandhandler.CleanHandler)
 
-		//endpoint to load scrips files throught SCP
-		apiGroup.POST("/scp/scripts", commandhandler.SCPHandler)
-
-		//endpoint to load scrips files throught SCP
-		apiGroup.POST("/scp/code", commandhandler.SCPCodeHandler)
-
 		//endpoint to run a pre-loaded scp script
-		apiGroup.POST("/scp/run/:script", commandhandler.SCPRunHandler)
+		apiGroup.GET("/scp/run/:script", commandhandler.SCPRunHandler)
+
+		//endpoint to load scrips files throught SCP
+		apiGroup.POST("/scripts", commandhandler.SCPHandler)
+
+		//endpoint to load project files throught SCP
+		apiGroup.POST("/code", commandhandler.SCPCodeHandler)
 	}
 
 	err := r.Run(":8080")

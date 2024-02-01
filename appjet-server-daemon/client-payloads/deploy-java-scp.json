@@ -70,14 +70,14 @@
         "code-checkout": {
             "git": {
                 "enabled": false,
-                "repo-url": "github.com/guilhermemalhado1/javadummyproj.git",
-                "repo-user": "guilhermemalhado1",
-                "repo-password": "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"
+                "repo-url": "placeholder",
+                "repo-user": "placeholder",
+                "repo-password": "placeholder"
             },
             "scp": {
                 "enabled": true,
                 "configurations": {
-                    "folder": "/usr/folderXPTO"
+                    "folder": "./code"
                 }
             }
         }

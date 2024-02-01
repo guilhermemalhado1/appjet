@@ -77,7 +77,7 @@
             "scp": {
                 "enabled": false,
                 "configurations": {
-                    "folder": "/usr/folderXPTO"
+                    "folder": "placeholder"
                 }
             }
         }

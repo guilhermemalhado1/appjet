@@ -19,6 +19,20 @@ func ConfigureHandler(c *gin.Context) {
 	configurationService.Configure(c)
 }
 
+func CheckAlive(c *gin.Context) {
+	containerStates, err := configurationService.GetDockerContainersState()
+	if err != nil {
+		c.JSON(500, gin.H{"error": "Failed to get Docker container states"})
+		return
+	}
+
+	response := gin.H{
+		"docker-containers-status": containerStates,
+	}
+
+	c.JSON(200, response)
+}
+
 func InspectHandler(c *gin.Context) {
 	config, err := loadConfig("config.json")
 	if err != nil {
@@ -194,7 +208,52 @@ func cleanDocker() error {
 
 func SCPRunHandler(c *gin.Context) {
 	script := c.Param("script")
-	print(script)
+
+	// Define the folder where the scripts are stored
+	scriptsFolder := "./scp/loaded-scripts"
+
+	// Construct the file path for the specified script
+	scriptPath := filepath.Join(scriptsFolder, script)
+
+	// Read the content of the script file
+	scriptContent, err := ioutil.ReadFile(scriptPath)
+	if err != nil {
+		c.JSON(500, gin.H{"error": "Failed to read the script file"})
+		return
+	}
+
+	// Create a temporary script file to execute
+	tempScriptPath := filepath.Join(scriptsFolder, "temp_script.sh")
+	err = ioutil.WriteFile(tempScriptPath, scriptContent, os.ModePerm)
+	if err != nil {
+		c.JSON(500, gin.H{"error": "Failed to create temporary script file"})
+		return
+	}
+	defer func(name string) {
+		err := os.Remove(name)
+		if err != nil {
+			print(500, gin.H{"error": "Failed to clean temporary script file"})
+		}
+	}(tempScriptPath) // Clean up the temporary script file when done
+
+	// Make the script file executable
+	cmd := exec.Command("chmod", "+x", tempScriptPath)
+	err = cmd.Run()
+	if err != nil {
+		c.JSON(500, gin.H{"error": "Failed to make script file executable"})
+		return
+	}
+
+	// Execute the script
+	cmd = exec.Command(tempScriptPath)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		c.JSON(500, gin.H{"error": fmt.Sprintf("Failed to execute script: %s", err.Error())})
+		return
+	}
+
+	// Respond with the output of the script
+	c.JSON(200, gin.H{"output": string(output)})
 }
 
 func SCPCodeHandler(c *gin.Context) {
