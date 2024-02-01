@@ -4,10 +4,23 @@ package main
 import (
 	commandhandler "appjet-server-daemon/app/handlers"
 	"github.com/gin-gonic/gin"
+	"log"
+	"os"
+	"strconv"
 )
 
 func main() {
 	r := gin.Default()
+
+	portStr := os.Getenv("port")
+	if portStr == "" {
+		portStr = "8080"
+	}
+
+	port, err := strconv.Atoi(portStr)
+	if err != nil {
+		log.Fatal("Invalid port number:", err)
+	}
 
 	apiGroup := r.Group("/api")
 	{
@@ -46,7 +59,7 @@ func main() {
 		apiGroup.POST("/code", commandhandler.SCPCodeHandler)
 	}
 
-	err := r.Run(":8080")
+	err = r.Run(":" + strconv.Itoa(port))
 	if err != nil {
 		print(err)
 		return
