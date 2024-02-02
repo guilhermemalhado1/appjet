@@ -39,8 +39,8 @@ func GetHardcodedConfiguration() Configuration {
 		}{
 			Driver:    "mysql",
 			Username:  "root",
-			Password:  "root",
-			Host:      "database",
+			Password:  "root0000",
+			Host:      "localhost",
 			Port:      3306,
 			DBName:    "app-db",
 			Charset:   "utf8mb4",

@@ -5,25 +5,12 @@ import (
 	handlers "appjet-decision-manager/app/handlers"
 	services "appjet-decision-manager/app/services"
 	"github.com/gin-gonic/gin"
-	"log"
-	"os"
-	"strconv"
 )
 
 func main() {
 	r := gin.Default()
 
-	portStr := os.Getenv("port")
-	if portStr == "" {
-		portStr = "8080"
-	}
-
-	port, err := strconv.Atoi(portStr)
-	if err != nil {
-		log.Fatal("Invalid port number:", err)
-	}
-
-	_, err = services.CreateDbConnection()
+	_, err := services.CreateDbConnection()
 	if err != nil {
 		return
 	}
@@ -38,14 +25,88 @@ func main() {
 
 		// protected endpoints
 		protectedGroup := apiGroup.Group("/")
-		protectedGroup.Use(handlers.AuthMiddlewareHandler) // Add middleware for token authentication
+		protectedGroup.Use(handlers.AuthMiddlewareHandler)
 		{
-			protectedGroup.GET("/endpoint1", handlers.Endpoint1Handler)
-			protectedGroup.GET("/endpoint2", handlers.Endpoint2Handler)
+
+			//returns config and builds all dependencies - but don't start the process - in all servers in all clusters
+			protectedGroup.POST("/configure", handlers.ConfigureAllClustersAllServersHandler)
+			//returns config and builds all dependencies - but don't start the process - in all servers in specific cluster
+			protectedGroup.POST("/configure/:cluster", handlers.ConfigureSpecificClusterAllServersHandler)
+			//returns config and builds all dependencies - but don't start the process - in specific server in specific cluster
+			protectedGroup.POST("/configure/:cluster/:server", handlers.ConfigureSpecificClusterSpecificServerHandler)
+
+			/*//start all infrastructure in all servers on the clusters
+			apiGroup.GET("/start", handlers.StartHandler)
+			//start all infrastructure in all servers on specific cluster
+			apiGroup.GET("/start/:cluster", handlers.StartHandler)
+			//start all infrastructure in a specific server on specific cluster
+			apiGroup.GET("/start/:cluster/:server", handlers.StartHandler)
+			//start a specific docker container inside a specific server on specific cluster
+			apiGroup.GET("/start/:cluster/:server/:container", handlers.StartContainerHandler)
+
+			//restart all infrastructure in all servers in all clusters
+			apiGroup.GET("/restart", handlers.RestartHandler)
+			//restart all infrastructure in all servers on specific cluster
+			apiGroup.GET("/restart/:cluster", handlers.RestartHandler)
+			//restart all infrastructure in a specific server on specific cluster
+			apiGroup.GET("/restart/:cluster/:server", handlers.RestartHandler)
+			//restart a specific docker container inside a specific server on specific cluster
+			apiGroup.GET("/restart/:cluster/:server/:container", handlers.RestartContainerHandler)
+
+			//stop all infrastructure in all servers on the clusters
+			apiGroup.GET("/stop", handlers.StopHandler)
+			//stop all infrastructure in all servers on specific cluster
+			apiGroup.GET("/stop/:cluster", handlers.StopHandler)
+			//stop all infrastructure in a specific server on specific cluster
+			apiGroup.GET("/stop/:cluster/:server", handlers.StopHandler)
+			//stop a specific docker container inside a specific server on specific cluster
+			apiGroup.GET("/stop/:cluster/:server/:container", handlers.StopContainerHandler)
+
+			//Check if all containers are alive in all servers in all clusters
+			protectedGroup.GET("/check-alive", handlers.CheckAliveAllClustersAllServers)
+			//Check if all containers are alive in all servers in specific cluster
+			protectedGroup.GET("/check-alive/:cluster", handlers.CheckAliveInClusterAllServers)
+			//Check if all containers are alive in specific server in specific cluster
+			protectedGroup.GET("/check-alive/:cluster/:server", handlers.CheckAliveInClusterInServer)
+
+			//returns the config.json present in all servers on all clusters
+			apiGroup.GET("/inspect", handlers.InspectHandler)
+			//returns the config.json present in all servers on a specific clusters
+			apiGroup.GET("/inspect/:cluster", handlers.InspectHandler)
+			//returns the config.json present in specific server on a specific cluster
+			apiGroup.GET("/inspect/:cluster/:server", handlers.InspectHandler)
+
+			//clean all docker images, containers and volumes in all servers in all clusters
+			apiGroup.GET("/clean", handlers.CleanHandler)
+			//clean all docker images, containers and volumes in all servers in specific clusters
+			apiGroup.GET("/clean/:cluster", handlers.CleanHandler)
+			//clean all docker images, containers and volumes in specific server in specific clusters
+			apiGroup.GET("/clean/:cluster/:server", handlers.CleanHandler)
+
+			//endpoint to load scrips files throught SCP in all servers in all clusters
+			apiGroup.POST("/scripts", handlers.SCPHandler)
+			//endpoint to load scrips files throught SCP in all servers in specific cluster
+			apiGroup.POST("/scripts/:cluster", handlers.SCPHandler)
+			//endpoint to load scrips files throught SCP in specific server in specific cluster
+			apiGroup.POST("/scripts/:cluster/:server", handlers.SCPHandler)
+
+			//endpoint to load project files throught SCP in all servers in all clusters
+			apiGroup.POST("/code", handlers.SCPCodeHandler)
+			//endpoint to load project files throught SCP in all servers in specific cluster
+			apiGroup.POST("/code/:cluster", handlers.SCPCodeHandler)
+			//endpoint to load project files throught SCP in specific server in specific cluster
+			apiGroup.POST("/code/:cluster/:server", handlers.SCPCodeHandler)
+
+			//endpoint to run a pre-loaded scp script in all servers in all clusters
+			apiGroup.GET("/scp/run/:script", handlers.SCPRunHandler)
+			//endpoint to run a pre-loaded scp script in all servers in specific cluster
+			apiGroup.GET("/scp/run/:script/:cluster", handlers.SCPRunHandler)
+			//endpoint to run a pre-loaded scp script in specific server in specific cluster
+			apiGroup.GET("/scp/run/:script/:cluster/:server", handlers.SCPRunHandler)*/
 		}
 	}
 
-	err = r.Run(":" + strconv.Itoa(port))
+	err = r.Run(":8080")
 	if err != nil {
 		print(err)
 		return

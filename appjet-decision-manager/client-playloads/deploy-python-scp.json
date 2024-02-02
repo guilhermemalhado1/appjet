@@ -1,0 +1,85 @@
+{
+    "identity-provider": {
+        "server-url": "http://localhost:8080",
+        "server-username": "root",
+        "server-password": "admin"
+    },
+    "clusters": [
+        {
+            "name": "cluster-name1",
+            "servers": [
+                {
+                    "name": "server-name1",
+                    "ip": "127.0.0.1",
+                    "port": 8080,
+                    "user": "root",
+                    "password": "admin",
+                    "deploy-details": {
+                        "folder": "/usr/folderXPTO"
+                    }
+                }
+            ]
+        }
+    ],
+    "artifact": {
+        "application": {
+            "language": "python",
+            "framework": "django",
+            "artifact": {
+                "target": ""
+            },
+            "docker-image": "python:3.9.6-slim",
+            "ports": {
+                "internal-docker": 8080,
+                "external-docker": 1234
+            },
+            "builder": {
+                "name": "pip",
+                "version": "3.4.1",
+                "docker-image": "no need"
+            }
+        },
+        "database": {
+            "driver": "mysql:latest",
+            "name": "app-db",
+            "user": "root",
+            "password": "root",
+            "root_password": "root",
+            "ports": {
+                "internal-docker": 3306,
+                "external-docker": 12345
+            }
+        },
+        "extra-commands": {
+            "local-script-folder-dir": ".",
+            "commands": {
+                "before": [
+                    {
+                        "command": "/scripts/run-script-to-do-something.sh",
+                        "priority": 1
+                    }
+                ],
+                "after": [
+                    {
+                        "command": "/scripts/run-migrations.sh",
+                        "run-order": 1
+                    }
+                ]
+            }
+        },
+        "code-checkout": {
+            "git": {
+                "enabled": false,
+                "repo-url": "placeholder",
+                "repo-user": "placeholder",
+                "repo-password": "placeholder"
+            },
+            "scp": {
+                "enabled": true,
+                "configurations": {
+                    "folder": "./code"
+                }
+            }
+        }
+    }
+}
