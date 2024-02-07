@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
-	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"os"
@@ -148,55 +147,61 @@ func ForwardSCPCodeToDaemon(codeDirectory string, url string) (resp *http.Respon
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 
-	dirNameField, err := writer.CreateFormField("dir-name")
-	if err != nil {
-		return nil, err
-	}
-	dirNameField.Write([]byte(filepath.Base(codeDirectory)))
+	// Walk through the specified directory and its subdirectories
+	err = filepath.Walk(codeDirectory, func(filePath string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
 
-	// Read all files from the specified directory
-	files, err := ioutil.ReadDir(codeDirectory)
-	if err != nil {
-		return nil, err
-	}
-
-	// Add each file to the multipart form data
-	for _, file := range files {
 		// Skip directories
-		if file.IsDir() {
-			continue
+		if info.IsDir() {
+			return nil
 		}
 
 		// Create a form file field for each file
-		part, err := writer.CreateFormFile("file", file.Name())
+		part, err := writer.CreateFormFile("files", filePath)
 		if err != nil {
-			return nil, err
+			return err
 		}
 
 		// Open the file
-		filePath := filepath.Join(codeDirectory, file.Name())
 		fileContent, err := os.Open(filePath)
 		if err != nil {
-			return nil, err
+			return err
 		}
 		defer fileContent.Close()
 
 		// Copy the content of the file to the form file field
 		_, err = io.Copy(part, fileContent)
 		if err != nil {
-			return nil, err
+			return err
 		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
 	}
 
 	// Close the multipart writer before making the request
-	writer.Close()
+	err = writer.Close()
+	if err != nil {
+		return nil, err
+	}
 
 	// Make HTTP POST request to the SCPCodeHandler endpoint
-	response, err := http.Post(url, writer.FormDataContentType(), body)
+	request, err := http.NewRequest("POST", url, body)
+	if err != nil {
+		return nil, err
+	}
+	request.Header.Set("Content-Type", writer.FormDataContentType())
+
+	client := &http.Client{}
+	response, err := client.Do(request)
 	if err != nil {
 		return nil, err
 	}
 	defer response.Body.Close()
 
-	return response, err
+	return response, nil
 }
