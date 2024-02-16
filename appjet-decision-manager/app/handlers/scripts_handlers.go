@@ -24,11 +24,11 @@ func SCPAllClustersAllServersHandler(c *gin.Context) {
 
 		for sIndex := range config.Clusters[cIndex].Servers {
 			serverIP := config.Clusters[cIndex].Servers[sIndex].IP
-			daemonResponse, _ := services.ForwardSCPToDaemon(file, header.Filename, "http://"+serverIP+":8080/scripts")
+			daemonResponse, _ := services.ForwardSCPToDaemon(file, header.Filename, "http://"+serverIP+":8080/api/scripts")
 
 			// Build response structure
 			serverResponse := map[string]interface{}{
-				"" + config.Clusters[cIndex].Servers[sIndex].Name + "": daemonResponse, // Replace this with the actual response from the daemon
+				config.Clusters[cIndex].Servers[sIndex].Name: daemonResponse, // Storing the actual response from the daemon
 			}
 
 			clusterResponses = append(clusterResponses, serverResponse)
@@ -36,7 +36,7 @@ func SCPAllClustersAllServersHandler(c *gin.Context) {
 
 		// Build response structure for the cluster
 		clusterResponse := map[string]interface{}{
-			"" + config.Clusters[cIndex].Name + "": clusterResponses,
+			config.Clusters[cIndex].Name: clusterResponses,
 		}
 
 		daemonResponses = append(daemonResponses, clusterResponse)
@@ -71,11 +71,11 @@ func SCPSpecificClusterAllServersHandler(c *gin.Context) {
 
 			for sIndex := range config.Clusters[cIndex].Servers {
 				serverIP := config.Clusters[cIndex].Servers[sIndex].IP
-				daemonResponse, _ := services.ForwardSCPToDaemon(file, header.Filename, "http://"+serverIP+":8080/scripts")
+				daemonResponse, _ := services.ForwardSCPToDaemon(file, header.Filename, "http://"+serverIP+":8080/api/scripts")
 
 				// Build response structure
 				serverResponse := map[string]interface{}{
-					"" + config.Clusters[cIndex].Servers[sIndex].Name + "": daemonResponse, // Replace this with the actual response from the daemon
+					config.Clusters[cIndex].Servers[sIndex].Name: daemonResponse, // Storing the actual response from the daemon
 				}
 
 				clusterResponses = append(clusterResponses, serverResponse)
@@ -83,7 +83,7 @@ func SCPSpecificClusterAllServersHandler(c *gin.Context) {
 
 			// Build response structure for the cluster
 			clusterResponse := map[string]interface{}{
-				"" + config.Clusters[cIndex].Name + "": clusterResponses,
+				config.Clusters[cIndex].Name: clusterResponses,
 			}
 
 			daemonResponses = append(daemonResponses, clusterResponse)
@@ -119,11 +119,11 @@ func SCPSpecificClusterSpecificServerHandler(c *gin.Context) {
 			for sIndex := range config.Clusters[cIndex].Servers {
 				if config.Clusters[cIndex].Servers[sIndex].Name == server {
 					serverIP := config.Clusters[cIndex].Servers[sIndex].IP
-					daemonResponse, _ := services.ForwardSCPToDaemon(file, header.Filename, "http://"+serverIP+":8080/scripts")
+					daemonResponse, _ := services.ForwardSCPToDaemon(file, header.Filename, "http://"+serverIP+":8080/api/scripts")
 
 					// Build response structure for the server
 					serverResponse := map[string]interface{}{
-						"" + config.Clusters[cIndex].Servers[sIndex].Name + "": daemonResponse, // Replace this with the actual response from the daemon
+						config.Clusters[cIndex].Servers[sIndex].Name: daemonResponse, // Storing the actual response from the daemon
 					}
 
 					daemonResponses = append(daemonResponses, serverResponse)
@@ -153,11 +153,11 @@ func SCPRunAllClustersAllServersHandler(c *gin.Context) {
 
 		for sIndex := range config.Clusters[cIndex].Servers {
 			serverIP := config.Clusters[cIndex].Servers[sIndex].IP
-			daemonResponse, _ := services.ForwardSCPRunToDaemon("http://" + serverIP + ":8080/scp/run/" + script)
+			daemonResponse, _ := services.ForwardSCPRunToDaemon("http://" + serverIP + ":8080/api/scp/run/" + script)
 
 			// Build response structure
 			serverResponse := map[string]interface{}{
-				"" + config.Clusters[cIndex].Servers[sIndex].Name + "": daemonResponse, // Replace this with the actual response from the daemon
+				config.Clusters[cIndex].Servers[sIndex].Name: daemonResponse, // Storing the actual response from the daemon
 			}
 
 			clusterResponses = append(clusterResponses, serverResponse)
@@ -165,7 +165,7 @@ func SCPRunAllClustersAllServersHandler(c *gin.Context) {
 
 		// Build response structure for the cluster
 		clusterResponse := map[string]interface{}{
-			"" + config.Clusters[cIndex].Name + "": clusterResponses,
+			config.Clusters[cIndex].Name: clusterResponses,
 		}
 
 		daemonResponses = append(daemonResponses, clusterResponse)
@@ -194,11 +194,11 @@ func SCPRunSpecificClusterAllServersHandler(c *gin.Context) {
 
 			for sIndex := range config.Clusters[cIndex].Servers {
 				serverIP := config.Clusters[cIndex].Servers[sIndex].IP
-				daemonResponse, _ := services.ForwardSCPRunToDaemon("http://" + serverIP + ":8080/scp/run/" + script)
+				daemonResponse, _ := services.ForwardSCPRunToDaemon("http://" + serverIP + ":8080/api/scp/run/" + script)
 
 				// Build response structure
 				serverResponse := map[string]interface{}{
-					"" + config.Clusters[cIndex].Servers[sIndex].Name + "": daemonResponse, // Replace this with the actual response from the daemon
+					config.Clusters[cIndex].Servers[sIndex].Name: daemonResponse, // Storing the actual response from the daemon
 				}
 
 				clusterResponses = append(clusterResponses, serverResponse)
@@ -206,7 +206,7 @@ func SCPRunSpecificClusterAllServersHandler(c *gin.Context) {
 
 			// Build response structure for the cluster
 			clusterResponse := map[string]interface{}{
-				"" + config.Clusters[cIndex].Name + "": clusterResponses,
+				config.Clusters[cIndex].Name: clusterResponses,
 			}
 
 			daemonResponses = append(daemonResponses, clusterResponse)
@@ -236,11 +236,11 @@ func SCPRunSpecificClusterSpecificServerHandler(c *gin.Context) {
 			for sIndex := range config.Clusters[cIndex].Servers {
 				if config.Clusters[cIndex].Servers[sIndex].Name == server {
 					serverIP := config.Clusters[cIndex].Servers[sIndex].IP
-					daemonResponse, _ := services.ForwardSCPRunToDaemon("http://" + serverIP + ":8080/scp/run/" + script)
+					daemonResponse, _ := services.ForwardSCPRunToDaemon("http://" + serverIP + ":8080/api/scp/run/" + script)
 
 					// Build response structure for the server
 					serverResponse := map[string]interface{}{
-						"" + config.Clusters[cIndex].Servers[sIndex].Name + "": daemonResponse, // Replace this with the actual response from the daemon
+						config.Clusters[cIndex].Servers[sIndex].Name: daemonResponse, // Storing the actual response from the daemon
 					}
 
 					daemonResponses = append(daemonResponses, serverResponse)

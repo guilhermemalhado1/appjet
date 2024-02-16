@@ -1,23 +1,35 @@
 version: '3.8'
 
 services:
-  app:
+  app_appjet:
+    container_name: app_appjet
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: app
     ports:
-      - "8080:8080"
+      - "9999:8080"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
-  database:
-    container_name: database
+  database_appjet:
+    container_name: database_appjet
     image: mysql:latest
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: app-db
       MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
     ports:
-      - "12345:3306"
+      - "8888:3306"
     command: ["mysqld", "--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci", "--bind-address=0.0.0.0"]
     volumes:
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  react-app:
+    container_name: react-app
+    build:
+      context: .
+      dockerfile: ./frontend/Dockerfile
+      args:
+        FRONTEND_DIR: "../../appjet-frontend"
+    ports:
+      - "3000:3000"  # Map container's port 3000 to host's port 3000

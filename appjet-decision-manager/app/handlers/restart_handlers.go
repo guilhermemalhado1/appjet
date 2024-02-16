@@ -1,7 +1,10 @@
 package handlers
 
 import (
+	"encoding/json"
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"io/ioutil"
 	"net/http"
 )
 import services "appjet-decision-manager/app/services"
@@ -17,11 +20,36 @@ func RestartAllClustersAllServersHandler(c *gin.Context) {
 
 		for sIndex := range config.Clusters[cIndex].Servers {
 			serverIP := config.Clusters[cIndex].Servers[sIndex].IP
-			daemonResponse, _ := services.ForwardRestartToDaemon("http://" + serverIP + ":8080/restart")
+			daemonResponse, err := services.ForwardRestartToDaemon("http://" + serverIP + ":8080/api/restart")
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
 
-			// Build response structure
+			responseBody, err := ioutil.ReadAll(daemonResponse.Body)
+			if err != nil {
+				// Handle error if needed
+				fmt.Println("Error reading response body:", err)
+				continue
+			}
+
+			// Parse the response body as JSON
+			var jsonResponse map[string]interface{}
+			if err := json.Unmarshal(responseBody, &jsonResponse); err != nil {
+				// Handle error if needed
+				fmt.Println("Error parsing JSON:", err)
+				continue
+			}
+
+			var serverData map[string]interface{}
+			err = json.Unmarshal(responseBody, &serverData)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to parse response body"})
+				return
+			}
+
 			serverResponse := map[string]interface{}{
-				"" + config.Clusters[cIndex].Servers[sIndex].Name + "": daemonResponse, // Replace this with the actual response from the daemon
+				config.Clusters[cIndex].Servers[sIndex].Name: serverData,
 			}
 
 			clusterResponses = append(clusterResponses, serverResponse)
@@ -29,7 +57,7 @@ func RestartAllClustersAllServersHandler(c *gin.Context) {
 
 		// Build response structure for the cluster
 		clusterResponse := map[string]interface{}{
-			"" + config.Clusters[cIndex].Name + "": clusterResponses,
+			config.Clusters[cIndex].Name: clusterResponses,
 		}
 
 		daemonResponses = append(daemonResponses, clusterResponse)
@@ -57,11 +85,36 @@ func RestartSpecificClusterAllServersHandler(c *gin.Context) {
 
 			for sIndex := range config.Clusters[cIndex].Servers {
 				serverIP := config.Clusters[cIndex].Servers[sIndex].IP
-				daemonResponse, _ := services.ForwardRestartToDaemon("http://" + serverIP + ":8080/restart")
+				daemonResponse, err := services.ForwardRestartToDaemon("http://" + serverIP + ":8080/api/restart")
+				if err != nil {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+					return
+				}
 
-				// Build response structure
+				responseBody, err := ioutil.ReadAll(daemonResponse.Body)
+				if err != nil {
+					// Handle error if needed
+					fmt.Println("Error reading response body:", err)
+					continue
+				}
+
+				// Parse the response body as JSON
+				var jsonResponse map[string]interface{}
+				if err := json.Unmarshal(responseBody, &jsonResponse); err != nil {
+					// Handle error if needed
+					fmt.Println("Error parsing JSON:", err)
+					continue
+				}
+
+				var serverData map[string]interface{}
+				err = json.Unmarshal(responseBody, &serverData)
+				if err != nil {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to parse response body"})
+					return
+				}
+
 				serverResponse := map[string]interface{}{
-					"" + config.Clusters[cIndex].Servers[sIndex].Name + "": daemonResponse, // Replace this with the actual response from the daemon
+					config.Clusters[cIndex].Servers[sIndex].Name: serverData,
 				}
 
 				clusterResponses = append(clusterResponses, serverResponse)
@@ -69,7 +122,7 @@ func RestartSpecificClusterAllServersHandler(c *gin.Context) {
 
 			// Build response structure for the cluster
 			clusterResponse := map[string]interface{}{
-				"" + config.Clusters[cIndex].Name + "": clusterResponses,
+				config.Clusters[cIndex].Name: clusterResponses,
 			}
 
 			daemonResponses = append(daemonResponses, clusterResponse)
@@ -98,11 +151,37 @@ func RestartSpecificClusterSpecificServerHandler(c *gin.Context) {
 			for sIndex := range config.Clusters[cIndex].Servers {
 				if config.Clusters[cIndex].Servers[sIndex].Name == server {
 					serverIP := config.Clusters[cIndex].Servers[sIndex].IP
-					daemonResponse, _ := services.ForwardRestartToDaemon("http://" + serverIP + ":8080/restart")
+					daemonResponse, err := services.ForwardRestartToDaemon("http://" + serverIP + ":8080/api/restart")
 
-					// Build response structure for the server
+					if err != nil {
+						c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+						return
+					}
+
+					responseBody, err := ioutil.ReadAll(daemonResponse.Body)
+					if err != nil {
+						// Handle error if needed
+						fmt.Println("Error reading response body:", err)
+						continue
+					}
+
+					// Parse the response body as JSON
+					var jsonResponse map[string]interface{}
+					if err := json.Unmarshal(responseBody, &jsonResponse); err != nil {
+						// Handle error if needed
+						fmt.Println("Error parsing JSON:", err)
+						continue
+					}
+
+					var serverData map[string]interface{}
+					err = json.Unmarshal(responseBody, &serverData)
+					if err != nil {
+						c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to parse response body"})
+						return
+					}
+
 					serverResponse := map[string]interface{}{
-						"" + config.Clusters[cIndex].Servers[sIndex].Name + "": daemonResponse, // Replace this with the actual response from the daemon
+						config.Clusters[cIndex].Servers[sIndex].Name: serverData,
 					}
 
 					daemonResponses = append(daemonResponses, serverResponse)
@@ -134,11 +213,36 @@ func RestartContainerSpecificClusterSpecificServerContainerHandler(c *gin.Contex
 			for sIndex := range config.Clusters[cIndex].Servers {
 				if config.Clusters[cIndex].Servers[sIndex].Name == server {
 					serverIP := config.Clusters[cIndex].Servers[sIndex].IP
-					daemonResponse, _ := services.ForwardRestartToDaemon("http://" + serverIP + ":8080/restart/" + container)
+					daemonResponse, err := services.ForwardRestartToDaemon("http://" + serverIP + ":8080/api/restart/" + container)
+					if err != nil {
+						c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+						return
+					}
 
-					// Build response structure for the server
+					responseBody, err := ioutil.ReadAll(daemonResponse.Body)
+					if err != nil {
+						// Handle error if needed
+						fmt.Println("Error reading response body:", err)
+						continue
+					}
+
+					// Parse the response body as JSON
+					var jsonResponse map[string]interface{}
+					if err := json.Unmarshal(responseBody, &jsonResponse); err != nil {
+						// Handle error if needed
+						fmt.Println("Error parsing JSON:", err)
+						continue
+					}
+
+					var serverData map[string]interface{}
+					err = json.Unmarshal(responseBody, &serverData)
+					if err != nil {
+						c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to parse response body"})
+						return
+					}
+
 					serverResponse := map[string]interface{}{
-						"" + config.Clusters[cIndex].Servers[sIndex].Name + "": daemonResponse, // Replace this with the actual response from the daemon
+						config.Clusters[cIndex].Servers[sIndex].Name: serverData,
 					}
 
 					daemonResponses = append(daemonResponses, serverResponse)

@@ -4,13 +4,10 @@ import (
 	"appjet-server-daemon/app/models"
 	"context"
 	"fmt"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
-	"os/exec"
-	"strings"
 )
 
 func GenerateInitSqlIfNeeded(cfg models.Configuration, c *gin.Context) {
@@ -162,6 +159,19 @@ exec $cmd
 `
 }
 
+func containerExists(cli *client.Client, name string) (bool, error) {
+	_, err := cli.ContainerInspect(context.Background(), name)
+	if err != nil && client.IsErrNotFound(err) {
+		// Container does not exist
+		return false, nil
+	} else if err != nil {
+		// Other error occurred
+		return false, err
+	}
+	// Container exists
+	return true, nil
+}
+
 func GetDockerContainersState() (map[string]interface{}, error) {
 	cli, err := client.NewEnvClient()
 	if err != nil {
@@ -183,20 +193,18 @@ func GetDockerContainersState() (map[string]interface{}, error) {
 		}
 
 		if exists {
-			// Check the status using 'docker inspect' command
-			statusCmd := exec.Command("docker", "inspect", "--format", "{{.State.Status}}", name)
-			statusOutput, err := statusCmd.CombinedOutput()
+			// Check the status using Docker SDK
+			containerInfo, err := cli.ContainerInspect(context.Background(), name)
 			if err != nil {
-				log.Printf("Error checking container status with 'docker inspect' for %s: %s", name, err)
+				log.Printf("Error checking container status for %s: %s", name, err)
 				return nil, err
 			}
 
-			// Trim any leading/trailing whitespaces from the output
-			status := strings.TrimSpace(string(statusOutput))
-			log.Printf("Container %s status from 'docker inspect': %s", name, status)
+			status := containerInfo.State.Running
+			log.Printf("Container %s status: %v", name, status)
 
 			containerStates[name] = map[string]interface{}{
-				"status": status == "running",
+				"status": status,
 			}
 		} else {
 			// Container doesn't exist, report as not running
@@ -207,24 +215,6 @@ func GetDockerContainersState() (map[string]interface{}, error) {
 	}
 
 	return containerStates, nil
-}
-
-// Check if a container with the given name exists
-func containerExists(cli *client.Client, containerName string) (bool, error) {
-	containers, err := cli.ContainerList(context.Background(), types.ContainerListOptions{})
-	if err != nil {
-		return false, err
-	}
-
-	for _, container := range containers {
-		for _, containerNameInList := range container.Names {
-			if strings.TrimLeft(containerNameInList, "/") == containerName {
-				return true, nil
-			}
-		}
-	}
-
-	return false, nil
 }
 
 func generatePythonDockerFile(cfg models.Configuration) string {

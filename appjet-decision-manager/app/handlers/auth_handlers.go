@@ -23,7 +23,7 @@ func LogoutHandler(c *gin.Context) {
 	}
 
 	// Delete the user session with the provided token from the database
-	err := services.GetDBConnection().Where("token = ?", token).Delete(&models.UserSession{}).Error
+	err := services.GetDBConnection().Unscoped().Where("token = ?", token).Delete(&models.UserSession{}).Error
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error deleting user session"})
 		return
@@ -34,6 +34,12 @@ func LogoutHandler(c *gin.Context) {
 
 func LoginHandler(c *gin.Context) {
 	// Get username and password from the request
+
+	_, err := services.CreateDbConnection()
+	if err != nil {
+		return
+	}
+
 	username := c.PostForm("username")
 	password := c.PostForm("password")
 
@@ -57,12 +63,14 @@ func LoginHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"token": persistedToken})
 }
 
-func authenticateUser(username, password string) (*User, error) {
+func authenticateUser(username string, password string) (*User, error) {
 	var user User
+	print(password)
 	// Query the database to find the user with the provided username and password
-	result := services.GetDBConnection().Where("username = ? AND password = ?", username, password).First(&user)
+	result := services.GetDBConnection().Unscoped().Where("username = ? AND password = ?", username, password).First(&user)
 
 	if result.Error != nil {
+
 		return nil, result.Error
 	}
 
@@ -79,7 +87,7 @@ func validateToken(token string) bool {
 	var userSession models.UserSession
 
 	// Query the database to find a user session with the provided token
-	result := services.GetDBConnection().Where("token = ?", token).First(&userSession)
+	result := services.GetDBConnection().Unscoped().Where("token = ?", token).First(&userSession)
 
 	// Check if the token exists in the database
 	return result.RowsAffected > 0
@@ -106,7 +114,7 @@ func persistToken(userID uint, token string) (string, error) {
 	}
 
 	// Insert the UserSession into the database
-	result := services.GetDBConnection().Create(&userSession)
+	result := services.GetDBConnection().Unscoped().Create(&userSession)
 
 	if result.Error != nil {
 		// Error occurred during insert

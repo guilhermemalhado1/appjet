@@ -1,5 +1,5 @@
 # Dockerfile
-FROM golang:latest
+FROM --platform=linux/arm64 golang:latest
 
 WORKDIR /app/appjet
 
@@ -11,4 +11,4 @@ RUN chmod +x wait-for-it.sh
 RUN chmod +x appjet-decision-manager
 
 # Define the entry point with wait-for-it.sh and the main application
-ENTRYPOINT ["./wait-for-it.sh", "database:3306", "--", "./appjet-decision-manager"]
+ENTRYPOINT ["./wait-for-it.sh", "database_appjet:3306", "--", "./appjet-decision-manager"]

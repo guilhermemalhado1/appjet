@@ -15,11 +15,15 @@ CREATE TABLE IF NOT EXISTS `users` (
 
 -- Create a table for user sessions
 CREATE TABLE IF NOT EXISTS `user_sessions` (
-    `id` INT AUTO_INCREMENT PRIMARY KEY,
-    `user_id` INT NOT NULL,
-    `token` VARCHAR(255) NOT NULL,
+                                               `id` INT AUTO_INCREMENT PRIMARY KEY,
+                                               `user_id` INT NOT NULL,
+                                               `token` VARCHAR(255) NOT NULL,
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `deleted_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (`user_id`) REFERENCES `users`(`id`)
-);
+    );
+
 
 -- Insert a new user if a user with the username "root" doesn't already exist
 INSERT IGNORE INTO `users` (`username`, `password`, `role`, `name`)

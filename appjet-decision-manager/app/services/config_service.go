@@ -8,17 +8,20 @@ import (
 	"os"
 )
 
-func GenerateConfigIfNotExist(c *gin.Context) models.Configuration {
+func GenerateConfigIfNotExist(c *gin.Context) *models.Configuration {
 	// Check if config.json file exists
 	if _, err := os.Stat("config.json"); os.IsNotExist(err) {
 		// File doesn't exist, generate it with the provided configuration
 		var config models.Configuration
 		shouldBindJSON(c, &config)
-		generateConfigFile(config, c)
-		return config
+		generateConfigFile(&config, c)
+		return &config
 	} else {
 		// File exists, read its contents and unmarshal into the config variable
-		config, _ := readConfigFile()
+		config, err := readConfigFile()
+		if err != nil {
+			c.JSON(500, gin.H{"error": "Failed to load config.json"})
+		}
 		return config
 	}
 }
@@ -30,7 +33,7 @@ func shouldBindJSON(c *gin.Context, config *models.Configuration) {
 	}
 }
 
-func generateConfigFile(config models.Configuration, c *gin.Context) {
+func generateConfigFile(config *models.Configuration, c *gin.Context) {
 	configJSON, err := json.MarshalIndent(config, "", "  ")
 	if err != nil {
 		c.JSON(500, gin.H{"error": "Failed to marshal JSON"})
@@ -43,23 +46,27 @@ func generateConfigFile(config models.Configuration, c *gin.Context) {
 		return
 	}
 
-	c.JSON(200, gin.H{"message": "Config.json generated successfully", "config": config})
 }
 
-func readConfigFile() (models.Configuration, error) {
+func readConfigFile() (*models.Configuration, error) {
+	file, err := os.Open("config.json")
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	// Read the content of config.json
+	content, err := ioutil.ReadAll(file)
+	if err != nil {
+		return nil, err
+	}
+
+	// Parse the content into a Config struct
 	var config models.Configuration
-
-	// Read the contents of config.json
-	configJSON, err := ioutil.ReadFile("config.json")
+	err = json.Unmarshal(content, &config)
 	if err != nil {
-		return config, err
+		return nil, err
 	}
 
-	// Unmarshal the JSON into the config variable
-	err = json.Unmarshal(configJSON, &config)
-	if err != nil {
-		return config, err
-	}
-
-	return config, nil
+	return &config, nil
 }

@@ -1,0 +1,145 @@
+/* Home.css */
+.home-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .navbar {
+    width: 100%;
+    height: 60px;
+    background-color: #333;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+  }
+  
+  .navbar-logo {
+    color: #fff;
+    font-size: 24px;
+    margin-left: 20px;
+  }
+  
+  .logout-button {
+    background-color: #f44336;
+    color: #fff;
+    border: none;
+    padding-right: 4%;
+    margin-right: 10px;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 5px;
+    width: 20px;
+  }
+
+  .spacer {
+    width: 20px;
+    margin-left: 10px;
+    margin-right: 10px;
+  }
+  
+  .buttons-container {
+    margin-top: 50px;
+    display: flex;
+    justify-content: space-around;
+    width: 50%;
+  }
+  
+  .documentation-button,
+  .monitoring-button {
+    background-color: #2196f3;
+    color: #fff;
+    border: none;
+    padding: 20px;
+    font-size: 20px;
+    cursor: pointer;
+    border-radius: 10px;
+  }
+  
+  .documentation-button img {
+    width: 100px;
+    height: 100px;
+    margin-bottom: 10px;
+  }
+  .monitoring-button img {
+    width: 100px;
+    height: 100px;
+    margin-bottom: 10px;
+  }
+  
+
+  /* Add this to Home.css */
+.additional-content {
+    width: calc(100% - 40px); /* Take up the remaining width of the screen after accounting for padding */
+    height: calc(100vh - 120px); /* Take up the remaining height of the screen after accounting for navbar height */
+    padding: 20px;
+    overflow: auto; /* Add scrollbar if content overflows */
+    background-color: #f0f0f0; /* Example background color */
+    margin-top: 20px; /* Add some margin from the buttons */
+  }
+  
+  .cluster-select {
+    margin-bottom: 20px; /* Add some margin below the select */
+  }
+
+  /* Add this to Home.css */
+.tree ul {
+    list-style: none;
+    padding-left: 20px;
+  }
+  
+  .tree li {
+    margin-bottom: 5px;
+  }
+  
+  .folder {
+    cursor: pointer;
+  }
+  
+  .folder:before {
+    content: "▶";
+    display: inline-block;
+    margin-right: 5px;
+  }
+  
+  .file:before {
+    content: "▸";
+    display: inline-block;
+    margin-right: 5px;
+  }
+  
+  .pretty-view {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+  
+  .pretty-view ul {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .pretty-view ul li {
+    margin-bottom: 10px;
+  }
+  
+  .cluster-name {
+    font-weight: bold;
+    margin-bottom: 5px;
+  }
+  
+  .key {
+    font-weight: bold;
+    margin-right: 5px;
+  }
+  
+  .value {
+    color: #666;
+  }
+
+  .view {
+    width: 10vh;
+  }
+
+  

@@ -17,11 +17,11 @@ func SCPCodeAllClustersAllServersHandler(c *gin.Context) {
 
 		for sIndex := range config.Clusters[cIndex].Servers {
 			serverIP := config.Clusters[cIndex].Servers[sIndex].IP
-			daemonResponse, _ := services.ForwardSCPCodeToDaemon("./code", "http://"+serverIP+":8080/code")
+			daemonResponse, _ := services.ForwardSCPCodeToDaemon("./code", "http://"+serverIP+":8080/api/code")
 
 			// Build response structure
 			serverResponse := map[string]interface{}{
-				"" + config.Clusters[cIndex].Servers[sIndex].Name + "": daemonResponse, // Replace this with the actual response from the daemon
+				config.Clusters[cIndex].Servers[sIndex].Name: daemonResponse, // Storing the actual response from the daemon
 			}
 
 			clusterResponses = append(clusterResponses, serverResponse)
@@ -29,7 +29,7 @@ func SCPCodeAllClustersAllServersHandler(c *gin.Context) {
 
 		// Build response structure for the cluster
 		clusterResponse := map[string]interface{}{
-			"" + config.Clusters[cIndex].Name + "": clusterResponses,
+			config.Clusters[cIndex].Name: clusterResponses,
 		}
 
 		daemonResponses = append(daemonResponses, clusterResponse)
@@ -57,11 +57,11 @@ func SCPCodeSpecificClusterAllServersHandler(c *gin.Context) {
 
 			for sIndex := range config.Clusters[cIndex].Servers {
 				serverIP := config.Clusters[cIndex].Servers[sIndex].IP
-				daemonResponse, _ := services.ForwardSCPCodeToDaemon("./code", "http://"+serverIP+":8080/code")
+				daemonResponse, _ := services.ForwardSCPCodeToDaemon("./code", "http://"+serverIP+":8080/api/code")
 
 				// Build response structure
 				serverResponse := map[string]interface{}{
-					"" + config.Clusters[cIndex].Servers[sIndex].Name + "": daemonResponse, // Replace this with the actual response from the daemon
+					config.Clusters[cIndex].Servers[sIndex].Name: daemonResponse, // Storing the actual response from the daemon
 				}
 
 				clusterResponses = append(clusterResponses, serverResponse)
@@ -69,7 +69,7 @@ func SCPCodeSpecificClusterAllServersHandler(c *gin.Context) {
 
 			// Build response structure for the cluster
 			clusterResponse := map[string]interface{}{
-				"" + config.Clusters[cIndex].Name + "": clusterResponses,
+				config.Clusters[cIndex].Name: clusterResponses,
 			}
 
 			daemonResponses = append(daemonResponses, clusterResponse)
@@ -98,11 +98,11 @@ func SCPCodeSpecificClusterSpecificServerHandler(c *gin.Context) {
 			for sIndex := range config.Clusters[cIndex].Servers {
 				if config.Clusters[cIndex].Servers[sIndex].Name == server {
 					serverIP := config.Clusters[cIndex].Servers[sIndex].IP
-					daemonResponse, _ := services.ForwardSCPCodeToDaemon("./code", "http://"+serverIP+":8080/code")
+					daemonResponse, _ := services.ForwardSCPCodeToDaemon("./code", "http://"+serverIP+":8080/api/code")
 
 					// Build response structure for the server
 					serverResponse := map[string]interface{}{
-						"" + config.Clusters[cIndex].Servers[sIndex].Name + "": daemonResponse, // Replace this with the actual response from the daemon
+						config.Clusters[cIndex].Servers[sIndex].Name: daemonResponse, // Storing the actual response from the daemon
 					}
 
 					daemonResponses = append(daemonResponses, serverResponse)

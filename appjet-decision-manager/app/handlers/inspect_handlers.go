@@ -1,15 +1,16 @@
 package handlers
 
 import (
+	"appjet-decision-manager/app/services"
+	"encoding/json"
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"io/ioutil"
 	"net/http"
 )
-import services "appjet-decision-manager/app/services"
 
 func InspectAllClustersAllServersHandler(c *gin.Context) {
 	config := services.GenerateConfigIfNotExist(c)
-
-	// Slice to store daemon responses
 	var daemonResponses []map[string]interface{}
 
 	for cIndex := range config.Clusters {
@@ -17,38 +18,59 @@ func InspectAllClustersAllServersHandler(c *gin.Context) {
 
 		for sIndex := range config.Clusters[cIndex].Servers {
 			serverIP := config.Clusters[cIndex].Servers[sIndex].IP
-			daemonResponse, _ := services.ForwardInspectToDaemon("http://" + serverIP + ":8080/inspect")
+			daemonResponse, err := services.ForwardInspectToDaemon("http://" + serverIP + ":8080/api/inspect")
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
 
-			// Build response structure
+			responseBody, err := ioutil.ReadAll(daemonResponse.Body)
+			if err != nil {
+				// Handle error if needed
+				fmt.Println("Error reading response body:", err)
+				continue
+			}
+
+			// Parse the response body as JSON
+			var jsonResponse map[string]interface{}
+			if err := json.Unmarshal(responseBody, &jsonResponse); err != nil {
+				// Handle error if needed
+				fmt.Println("Error parsing JSON:", err)
+				continue
+			}
+
+			var serverData map[string]interface{}
+			err = json.Unmarshal(responseBody, &serverData)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to parse response body"})
+				return
+			}
+
 			serverResponse := map[string]interface{}{
-				"" + config.Clusters[cIndex].Servers[sIndex].Name + "": daemonResponse, // Replace this with the actual response from the daemon
+				config.Clusters[cIndex].Servers[sIndex].Name: serverData,
 			}
 
 			clusterResponses = append(clusterResponses, serverResponse)
 		}
 
-		// Build response structure for the cluster
 		clusterResponse := map[string]interface{}{
-			"" + config.Clusters[cIndex].Name + "": clusterResponses,
+			config.Clusters[cIndex].Name: clusterResponses,
 		}
 
 		daemonResponses = append(daemonResponses, clusterResponse)
 	}
 
-	// Build the final response structure
 	finalResponse := map[string]interface{}{
 		"daemon-responses": daemonResponses,
 	}
 
-	// Return the final response
 	c.JSON(http.StatusOK, finalResponse)
 }
 
+// InspectSpecificClusterAllServersHandler handles inspection of a specific cluster and all servers
 func InspectSpecificClusterAllServersHandler(c *gin.Context) {
 	config := services.GenerateConfigIfNotExist(c)
 	cluster := c.Param("cluster")
-
-	// Slice to store daemon responses
 	var daemonResponses []map[string]interface{}
 
 	for cIndex := range config.Clusters {
@@ -57,40 +79,47 @@ func InspectSpecificClusterAllServersHandler(c *gin.Context) {
 
 			for sIndex := range config.Clusters[cIndex].Servers {
 				serverIP := config.Clusters[cIndex].Servers[sIndex].IP
-				daemonResponse, _ := services.ForwardInspectToDaemon("http://" + serverIP + ":8080/inspect")
+				daemonResponse, err := services.ForwardInspectToDaemon("http://" + serverIP + ":8080/api/inspect")
+				if err != nil {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+					return
+				}
 
-				// Build response structure
+				var responseBody map[string]interface{}
+				err = json.NewDecoder(daemonResponse.Body).Decode(&responseBody)
+				if err != nil {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to parse response body"})
+					return
+				}
+				defer daemonResponse.Body.Close()
+
 				serverResponse := map[string]interface{}{
-					"" + config.Clusters[cIndex].Servers[sIndex].Name + "": daemonResponse, // Replace this with the actual response from the daemon
+					config.Clusters[cIndex].Servers[sIndex].Name: responseBody,
 				}
 
 				clusterResponses = append(clusterResponses, serverResponse)
 			}
 
-			// Build response structure for the cluster
 			clusterResponse := map[string]interface{}{
-				"" + config.Clusters[cIndex].Name + "": clusterResponses,
+				config.Clusters[cIndex].Name: clusterResponses,
 			}
 
 			daemonResponses = append(daemonResponses, clusterResponse)
 		}
 	}
 
-	// Build the final response structure
 	finalResponse := map[string]interface{}{
 		"daemon-responses": daemonResponses,
 	}
 
-	// Return the final response
 	c.JSON(http.StatusOK, finalResponse)
 }
 
+// InspectSpecificClusterSpecificServerHandler handles inspection of a specific cluster and specific server
 func InspectSpecificClusterSpecificServerHandler(c *gin.Context) {
 	config := services.GenerateConfigIfNotExist(c)
 	cluster := c.Param("cluster")
 	server := c.Param("server")
-
-	// Slice to store daemon responses
 	var daemonResponses []map[string]interface{}
 
 	for cIndex := range config.Clusters {
@@ -98,11 +127,23 @@ func InspectSpecificClusterSpecificServerHandler(c *gin.Context) {
 			for sIndex := range config.Clusters[cIndex].Servers {
 				if config.Clusters[cIndex].Servers[sIndex].Name == server {
 					serverIP := config.Clusters[cIndex].Servers[sIndex].IP
-					daemonResponse, _ := services.ForwardInspectToDaemon("http://" + serverIP + ":8080/inspect")
+					daemonResponse, err := services.ForwardInspectToDaemon("http://" + serverIP + ":8080/api/inspect")
 
-					// Build response structure for the server
+					if err != nil {
+						c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+						return
+					}
+					defer daemonResponse.Body.Close()
+
+					var responseBody map[string]interface{}
+					err = json.NewDecoder(daemonResponse.Body).Decode(&responseBody)
+					if err != nil {
+						c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to parse response body"})
+						return
+					}
+
 					serverResponse := map[string]interface{}{
-						"" + config.Clusters[cIndex].Servers[sIndex].Name + "": daemonResponse, // Replace this with the actual response from the daemon
+						config.Clusters[cIndex].Servers[sIndex].Name: responseBody,
 					}
 
 					daemonResponses = append(daemonResponses, serverResponse)
@@ -111,11 +152,9 @@ func InspectSpecificClusterSpecificServerHandler(c *gin.Context) {
 		}
 	}
 
-	// Build the final response structure
 	finalResponse := map[string]interface{}{
 		"daemon-responses": daemonResponses,
 	}
 
-	// Return the final response
 	c.JSON(http.StatusOK, finalResponse)
 }

@@ -11,7 +11,7 @@ import (
 	"path/filepath"
 )
 
-func ForwardConfigToDaemon(config models.Configuration, url string) (resp *http.Response, err error) {
+func ForwardConfigToDaemon(config *models.Configuration, url string) (resp *http.Response, err error) {
 	// Convert config to JSON
 	configJSON, err := json.Marshal(config)
 	if err != nil {
@@ -71,7 +71,6 @@ func ForwardCheckAliveToDaemon(url string) (resp *http.Response, err error) {
 	if err != nil {
 		return nil, err
 	}
-	defer response.Body.Close()
 
 	return response, err
 }
@@ -83,7 +82,6 @@ func ForwardInspectToDaemon(url string) (resp *http.Response, err error) {
 	if err != nil {
 		return nil, err
 	}
-	defer response.Body.Close()
 
 	return response, err
 }

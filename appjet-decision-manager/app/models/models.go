@@ -1,6 +1,9 @@
 package models
 
-import "gorm.io/gorm"
+import (
+	"gorm.io/gorm"
+	"time"
+)
 
 // User represents the user model
 type User struct {
@@ -14,8 +17,11 @@ type User struct {
 // UserSession represents the user session model
 type UserSession struct {
 	gorm.Model
-	UserID uint   `gorm:"not null"`
-	Token  string `gorm:"not null"`
+	UserID    uint   `gorm:"not null"`
+	Token     string `gorm:"not null"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt gorm.DeletedAt `gorm:"-"`
 }
 
 type Configuration struct {

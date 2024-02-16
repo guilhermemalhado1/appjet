@@ -40,7 +40,7 @@ func GetHardcodedConfiguration() Configuration {
 			Driver:    "mysql",
 			Username:  "root",
 			Password:  "root",
-			Host:      "database",
+			Host:      "database_appjet",
 			Port:      3306,
 			DBName:    "app-db",
 			Charset:   "utf8mb4",
@@ -52,7 +52,6 @@ func GetHardcodedConfiguration() Configuration {
 }
 
 func CreateDbConnection() (*gorm.DB, error) {
-
 	config := GetHardcodedConfiguration()
 
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=%s&parseTime=%t&loc=%s",
@@ -66,7 +65,8 @@ func CreateDbConnection() (*gorm.DB, error) {
 		config.Database.Loc,
 	)
 
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	var err error
+	db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{}) // Assign to package-level db variable
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to the database: %w", err)
 	}

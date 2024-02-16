@@ -9,6 +9,14 @@ import (
 )
 
 func main() {
+
+	fmt.Println(`
+  ,---.  ,------. ,------.      ,--.,------.,--------. 
+ /  O  \ |  .--. '|  .--. '     |  ||  .---''--.  .--' 
+|  .-.  ||  '--' ||  '--' |,--. |  ||  '--,    |  |    
+|  | |  ||  | --' |  | --' |  '-'  /|  ` + "`" + `---.   |  |    
+` + "`" + `--' ` + "`" + `--'` + "`" + `--'     ` + "`" + `--'      ` + "`" + `-----' ` + "`" + `------'   ` + "`" + `--'  ` + "`")
+
 	// Retrieve command-line arguments
 	args := os.Args
 
@@ -18,12 +26,12 @@ func main() {
 	}
 
 	commandHandlers := map[string]func([]string, models.Configuration){
-		"help":        handlers.HandleHelpCommand,
-		"login":       handlers.HandleLoginCommand,
-		"logout":      handlers.HandleLogoutCommand,
-		"check-alive": handlers.HandleCheckAliveCommand,
-		"configure":   handlers.HandleConfigureCommand,
-		"inspect":     handlers.HandleInspectCommand,
+		"help":        handlers.HandleHelpCommand,       //ok
+		"login":       handlers.HandleLoginCommand,      //ok
+		"logout":      handlers.HandleLogoutCommand,     //ok
+		"check-alive": handlers.HandleCheckAliveCommand, //ok
+		"configure":   handlers.HandleConfigureCommand,  //ok
+		"inspect":     handlers.HandleInspectCommand,    //ok
 		"start":       handlers.HandleStartCommand,
 		"restart":     handlers.HandleRestartCommand,
 		"stop":        handlers.HandleStopCommand,
@@ -42,5 +50,6 @@ func main() {
 		handler = commandHandlers["default"]
 	}
 
+	// Call the command handler
 	handler(args[2:], config)
 }

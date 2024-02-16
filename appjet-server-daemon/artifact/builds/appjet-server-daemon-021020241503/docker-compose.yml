@@ -1,0 +1,23 @@
+version: '3'
+services:
+  app:
+    container_name: app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "1234:8080"
+    depends_on:
+      - database
+
+  database:
+    container_name: database
+    image: mysql:latest
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: app-db
+      MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+    ports:
+      - "12345:3306"
+    command: ["mysqld", "--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci", "--bind-address=0.0.0.0"]
+    

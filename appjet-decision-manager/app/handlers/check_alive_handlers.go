@@ -1,7 +1,10 @@
 package handlers
 
 import (
+	"encoding/json"
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"io/ioutil"
 	"net/http"
 )
 import services "appjet-decision-manager/app/services"
@@ -17,11 +20,33 @@ func CheckAliveAllClustersAllServersHandler(c *gin.Context) {
 
 		for sIndex := range config.Clusters[cIndex].Servers {
 			serverIP := config.Clusters[cIndex].Servers[sIndex].IP
-			daemonResponse, _ := services.ForwardCheckAliveToDaemon("http://" + serverIP + ":8080/check-alive")
+			daemonResponse, err := services.ForwardCheckAliveToDaemon("http://" + serverIP + ":8080/api/check-alive")
+			if err != nil {
+				// Handle error if needed
+				fmt.Println("Error:", err)
+				continue
+			}
+
+			// Read the response body
+			responseBody, err := ioutil.ReadAll(daemonResponse.Body)
+			if err != nil {
+				// Handle error if needed
+				fmt.Println("Error reading response body:", err)
+				continue
+			}
+
+			// Parse the response body as JSON
+			var jsonResponse map[string]interface{}
+			if err := json.Unmarshal(responseBody, &jsonResponse); err != nil {
+				// Handle error if needed
+				fmt.Println("Error parsing JSON:", err)
+				continue
+			}
 
 			// Build response structure
 			serverResponse := map[string]interface{}{
-				"" + config.Clusters[cIndex].Servers[sIndex].Name + "": daemonResponse, // Replace this with the actual response from the daemon
+				"server_name": config.Clusters[cIndex].Servers[sIndex].Name,
+				"response":    jsonResponse,
 			}
 
 			clusterResponses = append(clusterResponses, serverResponse)
@@ -29,7 +54,8 @@ func CheckAliveAllClustersAllServersHandler(c *gin.Context) {
 
 		// Build response structure for the cluster
 		clusterResponse := map[string]interface{}{
-			"" + config.Clusters[cIndex].Name + "": clusterResponses,
+			"cluster_name": config.Clusters[cIndex].Name,
+			"servers":      clusterResponses,
 		}
 
 		daemonResponses = append(daemonResponses, clusterResponse)
@@ -37,7 +63,7 @@ func CheckAliveAllClustersAllServersHandler(c *gin.Context) {
 
 	// Build the final response structure
 	finalResponse := map[string]interface{}{
-		"daemon-responses": daemonResponses,
+		"daemon_responses": daemonResponses,
 	}
 
 	// Return the final response
@@ -57,11 +83,26 @@ func CheckAliveSpecificClusterAllServersHandler(c *gin.Context) {
 
 			for sIndex := range config.Clusters[cIndex].Servers {
 				serverIP := config.Clusters[cIndex].Servers[sIndex].IP
-				daemonResponse, _ := services.ForwardCheckAliveToDaemon("http://" + serverIP + ":8080/check-alive")
+				daemonResponse, err := services.ForwardCheckAliveToDaemon("http://" + serverIP + ":8080/api/check-alive")
+				if err != nil {
+					// Handle error if needed
+					fmt.Println("Error:", err)
+					continue
+				}
+				defer daemonResponse.Body.Close()
 
-				// Build response structure
+				// Read the response body
+				responseBody, err := ioutil.ReadAll(daemonResponse.Body)
+				if err != nil {
+					// Handle error if needed
+					fmt.Println("Error reading response body:", err)
+					continue
+				}
+
+				// Build response structure for the server
 				serverResponse := map[string]interface{}{
-					"" + config.Clusters[cIndex].Servers[sIndex].Name + "": daemonResponse, // Replace this with the actual response from the daemon
+					"server_name": config.Clusters[cIndex].Servers[sIndex].Name,
+					"response":    string(responseBody),
 				}
 
 				clusterResponses = append(clusterResponses, serverResponse)
@@ -69,7 +110,8 @@ func CheckAliveSpecificClusterAllServersHandler(c *gin.Context) {
 
 			// Build response structure for the cluster
 			clusterResponse := map[string]interface{}{
-				"" + config.Clusters[cIndex].Name + "": clusterResponses,
+				"cluster_name": config.Clusters[cIndex].Name,
+				"servers":      clusterResponses,
 			}
 
 			daemonResponses = append(daemonResponses, clusterResponse)
@@ -98,11 +140,26 @@ func CheckAliveSpecificClusterSpecificServerHandler(c *gin.Context) {
 			for sIndex := range config.Clusters[cIndex].Servers {
 				if config.Clusters[cIndex].Servers[sIndex].Name == server {
 					serverIP := config.Clusters[cIndex].Servers[sIndex].IP
-					daemonResponse, _ := services.ForwardCheckAliveToDaemon("http://" + serverIP + ":8080/check-alive")
+					daemonResponse, err := services.ForwardCheckAliveToDaemon("http://" + serverIP + ":8080/api/check-alive")
+					if err != nil {
+						// Handle error if needed
+						fmt.Println("Error:", err)
+						continue
+					}
+					defer daemonResponse.Body.Close()
+
+					// Read the response body
+					responseBody, err := ioutil.ReadAll(daemonResponse.Body)
+					if err != nil {
+						// Handle error if needed
+						fmt.Println("Error reading response body:", err)
+						continue
+					}
 
 					// Build response structure for the server
 					serverResponse := map[string]interface{}{
-						"" + config.Clusters[cIndex].Servers[sIndex].Name + "": daemonResponse, // Replace this with the actual response from the daemon
+						"server_name": config.Clusters[cIndex].Servers[sIndex].Name,
+						"response":    string(responseBody),
 					}
 
 					daemonResponses = append(daemonResponses, serverResponse)

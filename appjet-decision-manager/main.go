@@ -4,11 +4,17 @@ package main
 import (
 	handlers "appjet-decision-manager/app/handlers"
 	services "appjet-decision-manager/app/services"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
 	r := gin.Default()
+
+	config := cors.DefaultConfig()
+	config.AllowHeaders = []string{"Authorization"} // Allow only Authorization header
+	config.AllowOrigins = []string{"*"}             // Allow all origins
+	r.Use(cors.New(config))
 
 	_, err := services.CreateDbConnection()
 	if err != nil {
@@ -18,10 +24,10 @@ func main() {
 	apiGroup := r.Group("/appjet")
 	{
 		// open endpoints
-		apiGroup.POST("/login", handlers.LoginHandler)
-		apiGroup.GET("/logout/:token", handlers.LogoutHandler)
+		apiGroup.POST("/login", handlers.LoginHandler)         //OK
+		apiGroup.GET("/logout/:token", handlers.LogoutHandler) //OK
 
-		apiGroup.GET("/help", handlers.HelpHandler)
+		apiGroup.GET("/help", handlers.HelpHandler) //OK
 
 		// protected endpoints
 		protectedGroup := apiGroup.Group("/")
@@ -29,18 +35,18 @@ func main() {
 		{
 
 			//returns config and builds all dependencies - but don't start the process - in all servers in all clusters
-			protectedGroup.POST("/configure", handlers.ConfigureAllClustersAllServersHandler)
+			protectedGroup.POST("/configure", handlers.ConfigureAllClustersAllServersHandler) //OK
 			//returns config and builds all dependencies - but don't start the process - in all servers in specific cluster
-			protectedGroup.POST("/configure/:cluster", handlers.ConfigureSpecificClusterAllServersHandler)
+			protectedGroup.POST("/configure/:cluster", handlers.ConfigureSpecificClusterAllServersHandler) //OK
 			//returns config and builds all dependencies - but don't start the process - in specific server in specific cluster
-			protectedGroup.POST("/configure/:cluster/:server", handlers.ConfigureSpecificClusterSpecificServerHandler)
+			protectedGroup.POST("/configure/:cluster/:server", handlers.ConfigureSpecificClusterSpecificServerHandler) //OK
 
 			//start all infrastructure in all servers on the clusters
-			apiGroup.GET("/start", handlers.StartAllClustersAllServersHandler)
+			apiGroup.GET("/start", handlers.StartAllClustersAllServersHandler) //OK
 			//start all infrastructure in all servers on specific cluster
-			apiGroup.GET("/start/:cluster", handlers.StartSpecificClusterAllServersHandler)
+			apiGroup.GET("/start/:cluster", handlers.StartSpecificClusterAllServersHandler) //OK
 			//start all infrastructure in a specific server on specific cluster
-			apiGroup.GET("/start/:cluster/:server", handlers.StartSpecificClusterSpecificServerHandler)
+			apiGroup.GET("/start/:cluster/:server", handlers.StartSpecificClusterSpecificServerHandler) //OK
 			//start a specific docker container inside a specific server on specific cluster
 			apiGroup.GET("/start/:cluster/:server/:container", handlers.StartContainerSpecificClusterSpecificServerHandler)
 

@@ -12,16 +12,21 @@ import (
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
 )
 
+type TokenResponse struct {
+	Token string `json:"token"`
+}
+
 func HandleHelpCommand(arguments []string, config models.Configuration) {
 
-	url := config.IdentityProvider.ServerURL + "/appjet/help"
-	response, err := http.Get(url)
+	appjetUrl := config.IdentityProvider.ServerURL + "/appjet/help"
+	response, err := http.Get(appjetUrl)
 	if err != nil {
 		fmt.Println("Error making HTTP GET request:", err)
 		return
@@ -43,7 +48,7 @@ func HandleHelpCommand(arguments []string, config models.Configuration) {
 		return
 	}
 
-	fmt.Println("HTTP GET request to", url, "completed. Response:")
+	fmt.Println("HTTP GET request to", appjetUrl, "completed. Response:")
 	fmt.Println(formattedJSON.String())
 }
 
@@ -58,19 +63,15 @@ func HandleLoginCommand(arguments []string, config models.Configuration) {
 	fmt.Print("Enter password: ")
 	fmt.Scanln(&password)
 
-	// Prepare the request body
-	requestBody, err := json.Marshal(map[string]string{
-		"username": username,
-		"password": password,
-	})
-	if err != nil {
-		fmt.Println("Error marshalling request body:", err)
-		return
+	// Prepare form data
+	formData := url.Values{
+		"username": {username},
+		"password": {password},
 	}
 
-	// Make HTTP POST request
+	// Make HTTP POST request with form data
 	url := config.IdentityProvider.ServerURL + "/appjet/login"
-	response, err := http.Post(url, "application/json", bytes.NewBuffer(requestBody))
+	response, err := http.PostForm(url, formData)
 	if err != nil {
 		fmt.Println("Error making HTTP POST request:", err)
 		return
@@ -84,14 +85,22 @@ func HandleLoginCommand(arguments []string, config models.Configuration) {
 		return
 	}
 
+	// Parse the JSON response
+	var tokenResponse TokenResponse
+	err = json.Unmarshal(body, &tokenResponse)
+	if err != nil {
+		fmt.Println("Error parsing JSON response:", err)
+		return
+	}
+
 	// Check the response status code
 	if response.StatusCode == http.StatusOK {
-		err := services.EncryptAndSaveToken(string(body))
+		err := services.EncryptAndSaveToken(tokenResponse.Token)
 		if err != nil {
 			fmt.Println("Error generating token security file:", err)
 			return
 		}
-		fmt.Println("Login successful. ")
+		fmt.Println("Login successful.")
 		// Proceed with the logic for successful login
 	} else {
 		fmt.Println("Login failed. Status code:", response.StatusCode)
@@ -116,12 +125,32 @@ func HandleLogoutCommand(arguments []string, config models.Configuration) {
 
 	// Check the response status code
 	if response.StatusCode == http.StatusOK {
+		err := deleteSecurityFiles()
+		if err != nil {
+			fmt.Println("Error deleting security files:", err)
+			return
+		}
 		fmt.Println("Logout successful")
-		// Proceed with the logic for successful logout
+
 	} else {
 		fmt.Println("Logout failed. Status code:", response.StatusCode)
 		// Handle failed logout attempt
 	}
+}
+
+func deleteSecurityFiles() error {
+	files, err := filepath.Glob("*.security")
+	if err != nil {
+		return err
+	}
+	for _, file := range files {
+		err := os.Remove(file)
+		if err != nil {
+			return err
+		}
+		fmt.Println("Deleted file:", file)
+	}
+	return nil
 }
 
 func HandleCheckAliveCommand(arguments []string, config models.Configuration) {
@@ -143,7 +172,7 @@ func HandleCheckAliveCommand(arguments []string, config models.Configuration) {
 	fmt.Println("Token:", token)
 	fmt.Println("URL:", url)
 
-	makeGETRequest(url)
+	makeGETRequest(url, token)
 
 }
 
@@ -195,7 +224,7 @@ func HandleConfigureCommand(arguments []string, config models.Configuration) {
 	defer resp.Body.Close()
 
 	// Print the response status
-	fmt.Println("Response Status:", resp.Status)
+	fmt.Println("Appjet configured sucessfully in the servers specified.")
 }
 
 func HandleInspectCommand(arguments []string, config models.Configuration) {
@@ -220,7 +249,7 @@ func HandleInspectCommand(arguments []string, config models.Configuration) {
 	fmt.Println("Token:", token)
 	fmt.Println("URL:", url)
 
-	makeGETRequest(url)
+	makeGETRequest(url, token)
 }
 
 func HandleStartCommand(arguments []string, config models.Configuration) {
@@ -245,7 +274,7 @@ func HandleStartCommand(arguments []string, config models.Configuration) {
 	fmt.Println("Token:", token)
 	fmt.Println("URL:", url)
 
-	makeGETRequest(url)
+	makeGETRequest(url, token)
 }
 
 func HandleRestartCommand(arguments []string, config models.Configuration) {
@@ -270,7 +299,7 @@ func HandleRestartCommand(arguments []string, config models.Configuration) {
 	fmt.Println("Token:", token)
 	fmt.Println("URL:", url)
 
-	makeGETRequest(url)
+	makeGETRequest(url, token)
 }
 
 func HandleStopCommand(arguments []string, config models.Configuration) {
@@ -295,7 +324,7 @@ func HandleStopCommand(arguments []string, config models.Configuration) {
 	fmt.Println("Token:", token)
 	fmt.Println("URL:", url)
 
-	makeGETRequest(url)
+	makeGETRequest(url, token)
 }
 
 func HandleCleanCommand(arguments []string, config models.Configuration) {
@@ -320,7 +349,7 @@ func HandleCleanCommand(arguments []string, config models.Configuration) {
 	fmt.Println("Token:", token)
 	fmt.Println("URL:", url)
 
-	makeGETRequest(url)
+	makeGETRequest(url, token)
 }
 
 func HandleScriptsCommand(arguments []string, config models.Configuration) {
@@ -502,15 +531,26 @@ func HandleSCPRunCommand(arguments []string, config models.Configuration) {
 	fmt.Println("Token:", token)
 	fmt.Println("URL:", url)
 
-	makeGETRequest(url)
+	makeGETRequest(url, token)
 }
 
 func HandleUnknownCommand(arguments []string, config models.Configuration) {
-	print("Unknown command.")
+	print("Unknown command. Use ./appjet-cli help")
 }
 
-func makeGETRequest(url string) {
-	response, err := http.Get(url)
+func makeGETRequest(url string, token string) {
+	// Create a new HTTP GET request
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		fmt.Println("Error creating HTTP request:", err)
+		return
+	}
+
+	// Add Authorization header with the token value
+	req.Header.Set("Authorization", token)
+
+	// Send the request using default HTTP client
+	response, err := http.DefaultClient.Do(req)
 	if err != nil {
 		fmt.Println("Error making HTTP GET request:", err)
 		return
@@ -524,8 +564,15 @@ func makeGETRequest(url string) {
 		return
 	}
 
-	// Process the response as needed
-	fmt.Println("Response:", string(body))
+	var formattedJSON bytes.Buffer
+	err = json.Indent(&formattedJSON, body, "", "    ")
+	if err != nil {
+		fmt.Println("Error formatting JSON:", err)
+		return
+	}
+
+	fmt.Println("Response:")
+	fmt.Println(formattedJSON.String())
 }
 
 func makePOSTRequest(url string) (*http.Response, error) {
