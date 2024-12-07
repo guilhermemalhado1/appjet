@@ -1,0 +1,9 @@
+
+version: '3.7'
+services:
+  app_name_xpto:
+    build:
+      context: .
+      dockerfile: Dockerfile_python
+    ports:
+      - "8080:8082"

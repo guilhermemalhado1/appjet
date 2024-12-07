@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appjet</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        /* Basic styling for the navbar */
+        .navbar {
+            background-color: #333;
+            overflow: hidden;
+            height: 50px;
+            line-height: 50px;
+        }
+        /* Style the links inside the navbar */
+        .navbar a {
+            float: left;
+            display: block;
+            color: white;
+            text-align: center;
+            padding: 0 20px;
+            text-decoration: none;
+            height: 100%;
+            box-sizing: border-box;
+        }
+        /* Change background color on hover */
+        .navbar a:hover {
+            background-color: #ddd;
+            color: black;
+        }
+        /* Columns in the navbar */
+        .column {
+            width: 40%;
+        }
+        /* Clear floats after the columns */
+        .row:after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+        /* Main content area */
+        main {
+            padding: 20px;
+        }
+        /* Footer */
+        footer {
+            text-align: center;
+            margin-top: 20px;
+        }
+        /* Table styling */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2f2f2;
+            color: #333;
+        }
+        /* Hide table initially */
+        #containerStatusTable {
+            display: none;
+            width: 50%;
+            margin-left: 30%;
+        }
+        /* Hide documentation paragraphs initially */
+        .documentation-content {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+<!-- Navbar -->
+<div class="navbar">
+    <div class="row">
+        <div class="column">
+            <a href="#documentation" class="navLink" onclick="showSection('documentationContent')">Documentation</a>
+        </div>
+        <div class="column">
+            <a href="#status" id="statusLink" class="navLink" onclick="showSection('containerStatusTable')">Status</a>
+        </div>
+    </div>
+</div>
+
+<main>
+    <!-- Documentation paragraphs -->
+    <div id="documentationContent" class="documentation-content">
+        <p>This is a simple example of serving static HTML files with a Go web server.</p>
+        <p>You can modify this file and add more content as needed.</p>
+    </div>
+
+    <!-- Container status table -->
+    <table id="containerStatusTable">
+        <thead>
+        <tr>
+            <th>Running Container name</th>
+            <th>Status</th>
+        </tr>
+        </thead>
+        <tbody>
+        <!-- Table rows will be populated dynamically -->
+        </tbody>
+    </table>
+</main>
+
+<footer>
+    <p>&copy; 2024 APPJET</p>
+</footer>
+
+<!-- JavaScript to fetch and display container status -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var navLinks = document.querySelectorAll('.navLink');
+
+        if (navLinks.length > 0) {
+            navLinks.forEach(function(link) {
+                link.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    var linkId = this.getAttribute('href').substring(1);
+
+                    // Hide all other sections except the one clicked
+                    navLinks.forEach(function(navLink) {
+                        var sectionId = navLink.getAttribute('href').substring(1);
+                        if (sectionId !== linkId) {
+                            hideSection(sectionId);
+                        }
+                    });
+
+                    if (linkId === 'status') {
+                        fetchContainerStatus();
+                    } else {
+                        hideSection('containerStatusTable');
+                    }
+
+                    if (linkId === 'documentationContent') {
+                        showDocumentation(true);
+                    } else {
+                        showDocumentation(false);
+                    }
+                });
+            });
+        } else {
+            console.error('No navigation links found.');
+        }
+    });
+
+    function fetchContainerStatus() {
+        fetch('/status')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                displayContainerStatus(data);
+            })
+            .catch(error => {
+                console.error('Error fetching container status:', error);
+                displayContainerStatus([]); // Display an empty table in case of error
+            });
+    }
+
+    function displayContainerStatus(statusList) {
+        var tableBody = document.querySelector('#containerStatusTable tbody');
+        tableBody.innerHTML = ''; // Clear existing rows
+
+        if (Array.isArray(statusList)) {
+            statusList.forEach(container => {
+                var row = document.createElement('tr');
+                var nameCell = document.createElement('td');
+                var statusCell = document.createElement('td');
+                nameCell.textContent = container.name;
+                statusCell.textContent = container.status;
+                row.appendChild(nameCell);
+                row.appendChild(statusCell);
+                tableBody.appendChild(row);
+            });
+        } else {
+            console.error('Invalid status list format:', statusList);
+        }
+
+        // Show the table after fetching and populating data
+        document.getElementById('containerStatusTable').style.display = 'table';
+    }
+
+    function hideSection(sectionId) {
+        var section = document.getElementById(sectionId);
+        if (section) {
+            section.style.display = 'none';
+        }
+    }
+
+    function showSection(sectionId) {
+        var section = document.getElementById(sectionId);
+        if (section) {
+            section.style.display = 'block';
+        }
+
+        if (sectionId === 'containerStatusTable') {
+            fetchContainerStatus();
+        } else {
+            hideSection('containerStatusTable');
+        }
+
+        if (sectionId === 'documentationContent') {
+            showDocumentation(true);
+        } else {
+            showDocumentation(false);
+        }
+    }
+
+    function showDocumentation(documentTab) {
+        var documentationContent = document.getElementById('documentationContent');
+        if (documentationContent) {
+            if (documentTab) {
+                documentationContent.style.display = 'block';
+            } else {
+                documentationContent.style.display = 'none';
+            }
+        }
+    }
+</script>
+
+</body>
+</html>

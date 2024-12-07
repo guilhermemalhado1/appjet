@@ -1,0 +1,14 @@
+{
+	"app_name": "app_name_xpto",
+    "language": "python",
+	"github_repo": "github.com/guilhermemalhado1/dummy-django.git",
+	"github_user": "guilhermemalhado1",
+	"github_password": "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",
+	"docker_image": "python:3.9-slim",
+	"target_urls": [
+		{
+			"url": "http://localhost:8081",
+			"name": "local-server"
+		}
+     ]
+}

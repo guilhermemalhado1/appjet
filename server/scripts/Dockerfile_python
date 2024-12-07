@@ -1,0 +1,14 @@
+
+FROM python:3.9-slim
+
+# Install git and pip
+RUN apt-get update && apt-get install -y git python3-pip
+
+# Install Django
+RUN pip install django
+
+WORKDIR /app
+
+RUN git clone https://guilhermemalhado1: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@github.com/guilhermemalhado1/dummy-django.git .
+
+CMD ["python", "myproject/manage.py", "runserver", "0.0.0.0:8082"]
