@@ -9,9 +9,10 @@
 
 - Dependency: Docker installed
 - Steps:
-      - 1) Docker already installed
-      - 2) Open terminal: run docker compose up in the same folder as you placed the docker-compose.yaml file present in this projects directory: https://github.com/guilhermemalhado1/appjet/tree/master/server/etc/infrastructure
-      - 3) Double click in the appjet-server executable
+    
+        1) Docker already installed
+        2) Open terminal: run docker compose up in the same folder as you placed the docker-compose.yaml file present in this projects directory: https://github.com/guilhermemalhado1/appjet/tree/master/server/etc/infrastructure
+        3) Double click in the appjet-server executable
 
 ### Client Side
 
