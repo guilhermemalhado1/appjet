@@ -18,7 +18,7 @@
 
 - Dependency: None
 - Configuration: Fill the Config.json file
-                 <img width="565" alt="image" src="https://github.com/user-attachments/assets/2d9882f4-59b8-4373-bff2-d5befd1bfa8c" />
+<img width="565" alt="image" src="https://github.com/user-attachments/assets/2d9882f4-59b8-4373-bff2-d5befd1bfa8c" />
 
   Note:. The config.json file, must be place in the same directory as your appjet-cli executable.
 - Steps:
