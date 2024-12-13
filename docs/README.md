@@ -9,19 +9,21 @@
 
 - Dependency: Docker installed
 - Steps:
-      1) Docker already installed
-      2) Open terminal: run docker compose up in the same folder as you placed the docker-compose.yaml file present in this projects directory: https://github.com/guilhermemalhado1/appjet/tree/master/server/etc/infrastructure
-      3) Double click in the appjet-server executable
+      - 1) Docker already installed
+      - 2) Open terminal: run docker compose up in the same folder as you placed the docker-compose.yaml file present in this projects directory: https://github.com/guilhermemalhado1/appjet/tree/master/server/etc/infrastructure
+      - 3) Double click in the appjet-server executable
 
 ### Client Side
 
 - Dependency: None
 - Configuration: Fill the Config.json file
                  <img width="565" alt="image" src="https://github.com/user-attachments/assets/2d9882f4-59b8-4373-bff2-d5befd1bfa8c" />
-                 Note:. The config.json file, must be place in the same directory as your appjet-cli executable.
+
+  Note:. The config.json file, must be place in the same directory as your appjet-cli executable.
 - Steps:
-      1) Open terminal on the directory of the appjet-cli executable
-      2) Run one of the following commands: 
+
+  1) Open terminal on the directory of the appjet-cli executable
+  2) Run one of the following commands: 
 <img width="544" alt="image" src="https://github.com/user-attachments/assets/54405162-77f2-4315-a8e5-bbeebc1b2981" />
 
 ## Metrics And Monitoring
