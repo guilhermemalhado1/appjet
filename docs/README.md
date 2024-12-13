@@ -22,8 +22,8 @@
   Note:. The config.json file, must be place in the same directory as your appjet-cli executable.
 - Steps:
 
-  1) Open terminal on the directory of the appjet-cli executable
-  2) Run one of the following commands: 
+      - 1) Open terminal on the directory of the appjet-cli executable
+      - 2) Run one of the following commands: 
 <img width="544" alt="image" src="https://github.com/user-attachments/assets/54405162-77f2-4315-a8e5-bbeebc1b2981" />
 
 ## Metrics And Monitoring
@@ -33,7 +33,7 @@
 #### Grafana & InfluxDB
 
 There is the optional feature of colecting logs and metrics and displaying that on grafana.
-In order to do that you must only go on the server URL where appjet-decision-manager is running/3001 and login with grafana credentials. (They are set on your .env file within infrastructure folder and you can change the credentials as you wish).
+In order to do that you must only go on the server URL where appjet-decision-manager is running on port 3001 and login with grafana credentials. (They are set on your .env file within infrastructure folder and you can change the credentials as you wish).
 
 You can also create your own dashboards and place them on the following directory: https://github.com/guilhermemalhado1/appjet/tree/master/server/etc/infrastructure/dashboards 
 Then you can simply upload them into your grafana instance in the desired server.
